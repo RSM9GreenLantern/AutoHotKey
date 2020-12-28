@@ -4,13 +4,13 @@ SetWorkingDir, %A_ScriptDir%
 
 RShift::
 	SendInput,{RShift}
-	KeyWait, RShift, T0.08  
+	KeyWait, RShift, T0.1
 	if (ErrorLevel)
     {
 		;long press
         Send,{RShift Down}
     } else {
-		KeyWait, RShift, D T0.088             
+		KeyWait, RShift, D T0.09             
 		if (ErrorLevel)
         {
 			;second press timed out, single press
