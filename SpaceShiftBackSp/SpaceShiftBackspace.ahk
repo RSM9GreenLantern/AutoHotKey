@@ -4,7 +4,7 @@ SetWorkingDir, %A_ScriptDir%
 
 RShift::
 	SendInput,{RShift}
-	KeyWait, RShift, T0.1
+	KeyWait, RShift, T1.4
 	if (ErrorLevel)
     {
 		;long press
