@@ -1,0 +1,2 @@
+LeftPedal,1,hold,subscripts\fP_forwardBack.ahk
+LeftPedal,2,hold,subscripts\fP_windowTab.ahk
