@@ -2,19 +2,15 @@
 SendMode Input
 SetWorkingDir, %A_ScriptDir%
 
-+Enter::
-	Send,{LWin Down}{m}
-	Send,{LWin Down}
-
 RShift::
 	SendInput,{RShift}
-	KeyWait, RShift, T0.1
+	KeyWait, RShift, T0.08  
 	if (ErrorLevel)
     {
-		msgbox,keyup timed out, long press
+		;long press
         Send,{RShift Down}
     } else {
-		KeyWait, RShift, D T0.2
+		KeyWait, RShift, D T0.088             
 		if (ErrorLevel)
         {
 			;second press timed out, single press
