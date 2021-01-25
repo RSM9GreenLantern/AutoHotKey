@@ -1,2 +1,8 @@
 0,.*Google Chrome.*,,GoogleChrome_cxtscpts
 1,.*Cmder.*,,Cmder_cxtscpts
+2,.*Sublime Text.*,,Sublime_cxtscpts
+3,.*Microsoft Whiteboard.*,,MSWhiteboard_cxtscpts
+4,.*Visual Studio Code.*,,VSCode_cxtscpts
+5,.*Ditto.*,,Ditto_cxtscpts
+6,.*Everything.*,,Everything_cxtscpts
+7,.*Centene VDI 10 - Desktop Viewer.*,,Centene_VDI_cxtscpts
