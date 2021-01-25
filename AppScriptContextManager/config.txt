@@ -1,2 +1,2 @@
-0,Google Chrome,,GoogleChrome_cxtscpts
-1,Cmder,,Cmder_cxtscpts
+0,.*Google Chrome.*,,GoogleChrome_cxtscpts
+1,.*Cmder.*,,Cmder_cxtscpts

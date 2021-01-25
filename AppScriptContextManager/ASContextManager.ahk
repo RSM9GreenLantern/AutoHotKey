@@ -2,144 +2,201 @@
 SendMode Input
 SetWorkingDir, %A_ScriptDir%
 SetTitleMatchMode RegEx
+#Include, ..\AppScriptContextManager\obj2Str.ahk
 
 main()
 
 main()
 {
+    InitializeDictionary()
+    WindowLoop()
+}
+
+InitializeDictionary()
+{
+    global
     appScriptDictionary:={}
-    lastOpenApps:={}
-    lastActiveApp:={}
+    previousExistingApps:={}
+    previousActiveApps:={}
+
+    local win_def:={}
+    local CommentSymIndex:=0
 
     Loop, read, ..\AppScriptContextManager\config.txt
     {
         CommentSymIndex:=InStr(A_LoopReadLine,"#")
         if (CommentSymIndex!=1)
         {
-            win_def:={}
             Loop, parse, A_LoopReadLine, `,
             {
                 Switch A_Index
                 {
                 Case 1:
                     win_def["appId"]:=A_LoopField
+                    Continue
                 Case 2:
                     win_def["winTitle"]:=A_LoopField
+                    Continue
                 Case 3:
                     win_def["winText"]:=A_LoopField
+                    Continue
                 Case 4:
                     win_def["scriptPath"]:=A_LoopField
+                    Continue
                 }
             }
-            appScriptDictionary[AppId]:=win_def
+            local AppId:=win_def["appId"]
+            appScriptDictionary[(AppId)]:=win_def
+            local objectString:=Obj2Str(appScriptDictionary)
+            MsgBox, %objectString%
         }
     }
+}
 
+WindowLoop()
+{
     Ext_Flag:=False
 
     while (!Ext_Flag) {
-        for index, win_def in appScriptDictionary
-            WinDefTitle:=win_def["winTitle"]
-            If (win_def["winTitle"]!="")
-            {
-                WinDefTitleRegex:=".*" . WinDefTitle . ".*"
-                If (WinExist(WinDefTitleRegex))
-                {
-                    If (lastOpenApps[%WinDefTitle%]=="")
-                    {
-                        lastOpenApps[%WinDefTitle%]:=win_def
-                        ;run
-                        StartAppScripts(win_def[scriptPath],appScriptDictionary)
-                    }
+        for index, win_def in appScriptDictionary {
 
-                    If (WinActive(WinDefTitleRegex))
+            WinDefTitle:=win_def["winTitle"]
+
+            If (WinExist(WinDefTitle))
+            {
+                If (previousExistingApps[(win_def["AppId"])]=="")
+                {
+                    MsgBox, starting %WinDefTitle%
+                    previousExistingApps[win_def["AppId"]]:=win_def
+                    ;run
+                    StartAppScripts(win_def["scriptPath"])
+                }
+
+                If (WinActive(WinDefTitle))
+                {
+                    If (previousActiveApps[win_def["AppId"]]!="")
                     {
-                        If (lastActiveApp[winTitle]!=%WinDefTitle%)
-                        {
-                            If (lastActiveApp[winTitle]!="")
-                            {
-                                ;sleep
-                                ToggleSleepAppScripts(lastActiveApp[scriptPath],appScriptDictionary)
-                            }
-                            lastActiveApp:=win_def
-                            ;wake
-                            ToggleSleepAppScripts(win_def[scriptPath],appScriptDictionary)
-                        }
-                    } 
+                        ;none
+                        MsgBox, already active %WinDefTitle%
+                    }
                     Else
                     {
-                        If (lastActiveApp[winTitle]==%WinDefTitle%)
-                        {
-                            lastActiveApp[%WinDefTitle%]:=""
-                            ;sleep
-                            ToggleSleepAppScripts(win_def[scriptPath],appScriptDictionary)
-                        }
+                        previousActiveApps[win_def["AppId"]]:=win_def
+                        ;wake
+                        MsgBox, waking %WinDefTitle%
+                        StartActiveAppScripts(win_def["scriptPath"])
                     }
-
                 } 
                 Else
                 {
-                    If (lastOpenApps[%WinDefTitle%]!="")
+                    If (previousActiveApps[win_def["AppId"]]=="")
                     {
-                        lastOpenApps[%WinDefTitle%]:=""
-                        ;kill
-                        TerminateAppScripts(win_def[scriptPath],appScriptDictionary)
+                        ;none
+                        MsgBox, notactive %WinDefTitle%
+                    }
+                    Else
+                    {
+                        previousActiveApps[(win_def["AppId"])]:=""
+                        TerminateActiveAppScripts(win_def["scriptPath"])
                     }
                 }
+
+            } 
+            Else
+            {
+                If (previousExistingApps[(win_def["AppId"])]!="")
+                {
+                    previousExistingApps[(win_def["AppId"])]:=""
+                    ;kill
+                    MsgBox, Euthanizing %WinDefTitle%
+                    TerminateAppScripts(win_def["scriptPath"])
+                }
             }
-        If (GetKeyState("F19"))
-        {
+
+            If (GetKeyState("F19"))
+            {
+                Ext_Flag:=True
+            }
             Ext_Flag:=True
         }
 
     }
-    TerminateAllAppScripts(scriptPath,appScriptDictionary)
+    MsgBox, Allended
+    Send,{LWinDown}{4}
+    Send,{LWinUp}
+
+    objectString:=Obj2Str(previousExistingApps)
+    Send,%objectString%
+
+    Send,{Enter}{Enter}
+
+    objectString:=Obj2Str(previousActiveApps)
+    Send,%objectString%
+
+    ;kill all
+    TerminateAllAppScripts()
     Exit, 200
 }
 
-StartAppScripts(scriptPath,appScriptDictionary)
+StartAppScripts(scriptPath)
 {
-    Loop Files, ..\AppScriptContextManager\script%scriptPath%\active\*.ahk
+    Loop Files, ..\AppScriptContextManager\script%scriptPath%\active\*.ahk, R
     {
+        MsgBox, started %A_LoopFileFullPath%
         Run %A_LoopFileFullPath%
         MsgBox, started %A_LoopFileFullPath%
     }
 
-    Loop Files, ..\AppScriptContextManager\script%scriptPath%\background\*.ahk
+    Loop Files, ..\AppScriptContextManager\script%scriptPath%\background\*.ahk, R
     {
+        MsgBox, starting %A_LoopFileFullPath%
         Run %A_LoopFileFullPath%
         MsgBox, started %A_LoopFileFullPath%
     }
 }
 
-ToggleSleepAppScripts(scriptPath,appScriptDictionary)
+TerminateActiveAppScripts(scriptPath)
 {
-    Loop Files, ..\AppScriptContextManager\script%scriptPath%\active\*.ahk
+    Loop Files, ..\AppScriptContextManager\script%scriptPath%\active\*.ahk, R
     {
-        PostMessage, 0x111, 65306,,, %A_LoopFileName%.ahk - AutoHotkey
-        MsgBox, toggle sleep %A_LoopFileFullPath%
-    }
-}
-
-TerminateAppScripts(scriptPath,appScriptDictionary)
-{
-    Loop Files, ..\AppScriptContextManager\script%scriptPath%\active\*.ahk
-    {
-        WinClose, %A_LoopFileName%.ahk - AutoHotkey
-        MsgBox, terminated %A_LoopFileFullPath%
-    }
-
-    Loop Files, ..\AppScriptContextManager\script%scriptPath%\background\*.ahk
-    {
+        MsgBox, terminating %A_LoopFileFullPath%
         WinClose, %A_LoopFileName%.ahk - AutoHotkey
         MsgBox, terminated %A_LoopFileFullPath%
     }
 }
 
-TerminateAllAppScripts(scriptPath,appScriptDictionary)
+StartActiveAppScripts(scriptPath)
+{
+    Loop Files, ..\AppScriptContextManager\script%scriptPath%\active\*.ahk, R
+    {
+        MsgBox, started %A_LoopFileFullPath%
+        Run %A_LoopFileFullPath%
+        MsgBox, started %A_LoopFileFullPath%
+    }
+}
+
+TerminateAppScripts(scriptPath)
+{
+    Loop Files, ..\AppScriptContextManager\script%scriptPath%\active\*.ahk, R
+    {
+        MsgBox, terminating %A_LoopFileFullPath%
+        WinClose, %A_LoopFileName%.ahk - AutoHotkey
+        MsgBox, terminated %A_LoopFileFullPath%
+    }
+
+    Loop Files, ..\AppScriptContextManager\script%scriptPath%\background\*.ahk, R
+    {
+        MsgBox, terminating %A_LoopFileFullPath%
+        WinClose, %A_LoopFileName%.ahk - AutoHotkey
+        MsgBox, terminated %A_LoopFileFullPath%
+    }
+}
+
+TerminateAllAppScripts()
 {
     Loop Files, ..\AppScriptContextManager\script\*.ahk, R
     {
+        MsgBox, terminating %A_LoopFileFullPath%
         WinClose, %A_LoopFileName%.ahk - AutoHotkey
         MsgBox, terminated %A_LoopFileFullPath%
     }
