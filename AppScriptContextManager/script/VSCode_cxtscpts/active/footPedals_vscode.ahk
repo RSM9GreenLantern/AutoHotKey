@@ -9,19 +9,24 @@ F16::
 		;long press
         Send, {CtrlDown}{ShiftDown}{l}
     	Send, {CtrlUp}{ShiftUp}
-    Return
-    } else {
+    	Return
+    } 
+	else 
+	{
 		KeyWait, F16, D T1             
 		if (ErrorLevel)
         {
 			;second press timed out, single press
 			Send, {Tab}
 			Return
-		} else {
+		} 
+		else 
+		{
 			;double press
 			Send, {Home}
 			Return
 		}
+	}
 	return
 
 F15::
@@ -31,7 +36,9 @@ F15::
 		;long press
         Send, {Enter}
 		Return
-    } else {
+    } 
+	else 
+	{
 		KeyWait, F15, D T1             
 		if (ErrorLevel)
         {
@@ -39,12 +46,15 @@ F15::
 			Send, {LWinDown}{2}
 			Send, {LWinUp}
 			Return
-		} else {
+		} 
+		else 
+		{
 			;double press
 			Input_Pattern=%Input_Pattern%Rdd
 			MsgBox, Input_Pattern
 			Return
 		}
+	}
 	return
 
 F14::
@@ -57,16 +67,21 @@ F14::
 			Send, {BackSpace}
 		}
 		Return
-    } else {
+    } 
+	else 
+	{
 		KeyWait, F14, D T1             
 		if (ErrorLevel)
         {
 			;second press timed out, single press
 			Send, {CtrlDown}{s}
 			Send, {CtrlUp}
-		} else {
+		} 
+		else 
+		{
 			;double press
 			Send, {End}
 			Return
 		}
+	}
 	return

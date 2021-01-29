@@ -13,6 +13,7 @@ F15::
     Return
     
 F14::
+    MsgBox, test
     Send, {CtrlDown}{Tab}
     Send, {CtrlUp}
     Return
